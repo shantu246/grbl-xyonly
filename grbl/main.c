@@ -24,6 +24,9 @@
 
 // Declare system global variable structure
 system_t sys; 
+volatile uint8_t sys_probe_state;
+volatile uint8_t sys_rt_exec_state;
+volatile uint8_t sys_rt_exec_alarm;
 
 
 int main(void)
