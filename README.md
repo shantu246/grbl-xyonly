@@ -309,10 +309,16 @@ grbl-xyonly/
 整体上，项目以 `main.c` 为入口，通过“协议驱动 + 运动规划 + 中断执行”实现 CNC 实时控制；文件边界清晰，模块职责明确，便于在不同机型（defaults）和 MCU（cpu_map）间复用与裁剪。
 
 ## 5.修改要点
+
+M11 S1  ; 将 D4 输出置高
+M11 S0  ; 将 D4 输出置低
+M22 S1  ; 将 D7 输出置高
+M22 S0  ; 将 D7 输出置低
 M33 S1  ; 将 D9 输出置高
 M33 S0  ; 将 D9 输出置低
 M44 S1  ; 将 D10 输出置高
 M44 S0  ; 将 D10 输出置低
+
 
 注释了一些Z轴相关代码
 
@@ -323,3 +329,34 @@ D7: Z 轴方向（Z direction）— 在引脚映射中为 Z_DIRECTION_BIT（Uno 
 D9: X 轴限位开关输入（X limit）— 在映射中为 X_LIMIT_BIT（Uno 数字引脚 D9，位于 LIMIT_PORT/PCINT 组）。证据: cpu_map_atmega328p.h:48-72。限位初始化/中断使用处: limits.c:1-40。
 
 D10: Y 轴限位开关输入（Y limit）— 在映射中为 Y_LIMIT_BIT（Uno 数字引脚 D10）。证据: cpu_map_atmega328p.h:48-72。限位处理处: limits.c:1-40。
+
+原版页眉
+G90 (use absolute coordinates)
+重复次数之间的代码
+;(Uncomment if you want to sink Z axis)
+;G91 (use relative coordinates)
+;G0 Z-1 (sinks the Z axis, 1mm)
+;G90 (use absolute coordinates)
+页脚
+G0 X0 Y0 Z0 (move back to origin)
+
+修正后的LED
+页眉
+G90 (use absolute coordinates)
+M11 S1
+M22 S1
+M33 S1
+M44 S1
+G4 P1
+
+重复次数之间的代码
+//仍未修改OK
+页脚
+G0 X0 Y0 Z0 (move back to origin)
+M11 S0
+M22 S0
+M33 S0
+M44 S0
+
+Hex . V1:M33 M44 OK!
+Hex . V2:M11 M22 OK!

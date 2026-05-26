@@ -55,13 +55,13 @@ static void protocol_execute_line(char *line)
     report_status_message(STATUS_ALARM_LOCK);
 
   } else {
-    // Intercept custom M-codes M33 and M44 to control D9/D10 outputs directly.
+    // Intercept custom M-codes M11/M22/M33/M44 to control D4/D7/D9/D10 outputs directly.
     if (line[0] == 'M') {
       // Parse M number
       uint16_t m = 0;
       uint8_t i = 1;
       while (line[i] >= '0' && line[i] <= '9') { m = m*10 + (line[i]-'0'); i++; }
-      if (m == 33 || m == 44) {
+      if (m == 11 || m == 22 || m == 33 || m == 44) {
         // Parse optional S word for state: S1 = high, S0 = low. Default: S1 -> high.
         int8_t s_val = -1;
         while (line[i] != 0) {
@@ -72,15 +72,23 @@ static void protocol_execute_line(char *line)
           }
           i++;
         }
-        // Determine bit and mask for selected pin (X_LIMIT_BIT -> D9, Y_LIMIT_BIT -> D10)
-        uint8_t bit_mask = 0;
-        if (m == 33) { bit_mask = (1<<X_LIMIT_BIT); } // D9
-        else { bit_mask = (1<<Y_LIMIT_BIT); } // D10
-
-        // Configure as output and set level
-        LIMIT_DDR |= bit_mask; // set as output
-        if (s_val == 0) { LIMIT_PORT &= ~bit_mask; } // drive low
-        else { LIMIT_PORT |= bit_mask; } // drive high (default)
+        if (m == 11) {
+          DDRD |= (1<<4); // D4
+          if (s_val == 0) { PORTD &= ~(1<<4); }
+          else { PORTD |= (1<<4); }
+        } else if (m == 22) {
+          DDRD |= (1<<7); // D7
+          if (s_val == 0) { PORTD &= ~(1<<7); }
+          else { PORTD |= (1<<7); }
+        } else if (m == 33) {
+          LIMIT_DDR |= (1<<X_LIMIT_BIT); // D9
+          if (s_val == 0) { LIMIT_PORT &= ~(1<<X_LIMIT_BIT); }
+          else { LIMIT_PORT |= (1<<X_LIMIT_BIT); }
+        } else {
+          LIMIT_DDR |= (1<<Y_LIMIT_BIT); // D10
+          if (s_val == 0) { LIMIT_PORT &= ~(1<<Y_LIMIT_BIT); }
+          else { LIMIT_PORT |= (1<<Y_LIMIT_BIT); }
+        }
 
         report_status_message(STATUS_OK);
         return;
