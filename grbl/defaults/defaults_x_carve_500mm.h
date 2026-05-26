@@ -32,21 +32,14 @@
   #define MICROSTEPS_XY 8
   #define STEP_REVS_XY 200
   #define MM_PER_REV_XY (2.0*20) // 2mm belt pitch, 20 pulley teeth
-  #define MICROSTEPS_Z 2
-  #define STEP_REVS_Z 200
-  #define MM_PER_REV_Z 2.117 // ACME 3/8-12 Leadscrew
   #define DEFAULT_X_STEPS_PER_MM (MICROSTEPS_XY*STEP_REVS_XY/MM_PER_REV_XY)
   #define DEFAULT_Y_STEPS_PER_MM (MICROSTEPS_XY*STEP_REVS_XY/MM_PER_REV_XY)
-  #define DEFAULT_Z_STEPS_PER_MM (MICROSTEPS_Z*STEP_REVS_Z/MM_PER_REV_Z)
   #define DEFAULT_X_MAX_RATE 8000.0 // mm/min
   #define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
-  #define DEFAULT_Z_MAX_RATE 500.0 // mm/min
   #define DEFAULT_X_ACCELERATION (500.0*60*60) // 25*60*60 mm/min^2 = 25 mm/sec^2
   #define DEFAULT_Y_ACCELERATION (500.0*60*60) // 25*60*60 mm/min^2 = 25 mm/sec^2
-  #define DEFAULT_Z_ACCELERATION (50.0*60*60) // 25*60*60 mm/min^2 = 25 mm/sec^2
   #define DEFAULT_X_MAX_TRAVEL 290.0 // mm
   #define DEFAULT_Y_MAX_TRAVEL 290.0 // mm
-  #define DEFAULT_Z_MAX_TRAVEL 100.0 // mm
   #define DEFAULT_STEP_PULSE_MICROSECONDS 10
   #define DEFAULT_STEPPING_INVERT_MASK 0
   #define DEFAULT_DIRECTION_INVERT_MASK ((1<<X_AXIS)|(1<<Y_AXIS))

@@ -307,3 +307,19 @@ grbl-xyonly/
 8. **输出层**：`print`、`report` 统一对上位机反馈状态与结果。
 
 整体上，项目以 `main.c` 为入口，通过“协议驱动 + 运动规划 + 中断执行”实现 CNC 实时控制；文件边界清晰，模块职责明确，便于在不同机型（defaults）和 MCU（cpu_map）间复用与裁剪。
+
+## 5.修改要点
+M33 S1  ; 将 D9 输出置高
+M33 S0  ; 将 D9 输出置低
+M44 S1  ; 将 D10 输出置高
+M44 S0  ; 将 D10 输出置低
+
+注释了一些Z轴相关代码
+
+D4: Z 轴步进脉冲（Z step）— 在引脚映射中为 Z_STEP_BIT（Uno 数字引脚 D4）。证据: cpu_map_atmega328p.h:20-40。步进逻辑使用处: stepper.c:280-320。
+
+D7: Z 轴方向（Z direction）— 在引脚映射中为 Z_DIRECTION_BIT（Uno 数字引脚 D7）。证据: cpu_map_atmega328p.h:36-60。使用处: stepper.c:380-394。
+
+D9: X 轴限位开关输入（X limit）— 在映射中为 X_LIMIT_BIT（Uno 数字引脚 D9，位于 LIMIT_PORT/PCINT 组）。证据: cpu_map_atmega328p.h:48-72。限位初始化/中断使用处: limits.c:1-40。
+
+D10: Y 轴限位开关输入（Y limit）— 在映射中为 Y_LIMIT_BIT（Uno 数字引脚 D10）。证据: cpu_map_atmega328p.h:48-72。限位处理处: limits.c:1-40。

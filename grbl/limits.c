@@ -183,7 +183,7 @@ void limits_go_home(uint8_t cycle_mask)
             int32_t axis_position = system_convert_corexy_to_x_axis_steps(sys.position);
             sys.position[A_MOTOR] = sys.position[B_MOTOR] = axis_position;
           } else { 
-            sys.position[Z_AXIS] = 0; 
+            // sys.position[Z_AXIS] = 0; 
           }
         #else
           sys.position[idx] = 0;
@@ -224,7 +224,7 @@ void limits_go_home(uint8_t cycle_mask)
           if (axislock & step_pin[idx]) {
             if (limit_state & (1 << idx)) { 
               #ifdef COREXY
-                if (idx==Z_AXIS) { axislock &= ~(step_pin[Z_AXIS]); }
+                // if (idx==Z_AXIS) { axislock &= ~(step_pin[Z_AXIS]); }
                 else { axislock &= ~(step_pin[A_MOTOR]|step_pin[B_MOTOR]); }
               #else
                 axislock &= ~(step_pin[idx]); 

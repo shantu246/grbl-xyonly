@@ -245,7 +245,7 @@ void report_grbl_settings() {
         switch (idx) {
           case X_AXIS: printPgmString(PSTR("x")); break;
           case Y_AXIS: printPgmString(PSTR("y")); break;
-          case Z_AXIS: printPgmString(PSTR("z")); break;
+          // case Z_AXIS: printPgmString(PSTR("z")); break;
         }
         switch (set_idx) {
           case 0: printPgmString(PSTR(", step/mm")); break;
