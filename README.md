@@ -308,55 +308,64 @@ grbl-xyonly/
 
 整体上，项目以 `main.c` 为入口，通过“协议驱动 + 运动规划 + 中断执行”实现 CNC 实时控制；文件边界清晰，模块职责明确，便于在不同机型（defaults）和 MCU（cpu_map）间复用与裁剪。
 
-## 5.修改要点
+## 5. 修改要点（操作与示例）
 
-M11 S1  ; 将 D4 输出置高
-M11 S0  ; 将 D4 输出置低
-M22 S1  ; 将 D7 输出置高
-M22 S0  ; 将 D7 输出置低
-M33 S1  ; 将 D9 输出置高
-M33 S0  ; 将 D9 输出置低
-M44 S1  ; 将 D10 输出置高
-M44 S0  ; 将 D10 输出置低
+本分节对本仓库所做的要点修改进行简要汇总，并给出可直接使用的操作示例与恢复步骤。
 
+M-code 概览（行为与参数）
+- `M11 Sx` : 控制数字引脚 D4（S1 = 输出高，S0 = 输出低；S 省略时默认为高）
+- `M22 Sx` : 控制数字引脚 D7（同上）
+- `M33 Sx` : 控制数字引脚 D9（原为 X 限位，引脚被临时配置为输出）
+- `M44 Sx` : 控制数字引脚 D10（原为 Y 限位，引脚被临时配置为输出）
 
-注释了一些Z轴相关代码
+示例：
+```text
+M11 S1    ; 将 D4 置高
+M22 S1    ; 将 D7 置高
+M33 S1    ; 将 D9 置高
+M44 S1    ; 将 D10 置高
 
-D4: Z 轴步进脉冲（Z step）— 在引脚映射中为 Z_STEP_BIT（Uno 数字引脚 D4）。证据: cpu_map_atmega328p.h:20-40。步进逻辑使用处: stepper.c:280-320。
+M11 S0    ; 将 D4 置低
+M22 S0    ; 将 D7 置低
+M33 S0    ; 将 D9 置低
+M44 S0    ; 将 D10 置低
+```
 
-D7: Z 轴方向（Z direction）— 在引脚映射中为 Z_DIRECTION_BIT（Uno 数字引脚 D7）。证据: cpu_map_atmega328p.h:36-60。使用处: stepper.c:380-394。
+注意事项与风险
+- D9/D10 原为限位开关输入（X/Y 限位）。在本分支中，`limits_init()` 已被修改为在启动时将这些引脚配置为输出并驱动低电平（以配合 M33/M44 的控制）。这会禁用它们作为限位输入的功能；仅在你确认不再需要硬限位时使用此固件版本。
+- D4/D7 原为 Z 轴步进与方向引脚。由于本仓库已按请求注释掉了 Z 轴相关代码，D4 与 D7 可由 `M11`/`M22` 控制。但请务必确认你的硬件接线与期待一致，避免在物理连接到步进驱动器时误输出导致损坏。
 
-D9: X 轴限位开关输入（X limit）— 在映射中为 X_LIMIT_BIT（Uno 数字引脚 D9，位于 LIMIT_PORT/PCINT 组）。证据: cpu_map_atmega328p.h:48-72。限位初始化/中断使用处: limits.c:1-40。
+如何发送 M-code（示例）
+- 使用你常用的 G-code 发送工具（Universal G-code Sender、bCNC、OctoPrint 等），直接在命令行输入 `M11 S1` 即可。
+- 使用仓库自带脚本（位于 `doc/script/`）或任何串口工具发送原始文本命令。
 
-D10: Y 轴限位开关输入（Y limit）— 在映射中为 Y_LIMIT_BIT（Uno 数字引脚 D10）。证据: cpu_map_atmega328p.h:48-72。限位处理处: limits.c:1-40。
+构建与验证（快速步骤）
+1. 清理并构建：
+```bash
+make clean //win is not surport this command,please手动删除build folder的内容
+set PATH=D:\SysGCC\avr\bin
+D:\SysGCC\avr\bin\make
+D:\SysGCC\avr\bin\avr-objcopy -O ihex build/main.elf grbl.hex
+```
+2. 查看生成文件大小（在构建成功后）：
+```bash
+avr-size -C --mcu=atmega328p build/main.elf
+```
+3. 烧录（如果 Makefile 支持）：
+```bash
+make flash
+```
 
-原版页眉
-G90 (use absolute coordinates)
-重复次数之间的代码
-;(Uncomment if you want to sink Z axis)
-;G91 (use relative coordinates)
-;G0 Z-1 (sinks the Z axis, 1mm)
-;G90 (use absolute coordinates)
-页脚
-G0 X0 Y0 Z0 (move back to origin)
+如何恢复限位引脚到输入（若需要恢复限位功能）
+1. 在 `grbl/limits.c` 恢复默认的 `limits_init()` 实现，使 `LIMIT_DDR` 不设置为输出，并重新启用内部上拉或外部电路。示例（伪代码）：
+```c
+// LIMIT_DDR &= ~LIMIT_MASK;   // 确保作为输入
+// LIMIT_PORT |= LIMIT_MASK;   // 启用内部上拉（如需要）
+```
+2. 重新构建并烧录固件。
 
-修正后的LED
-页眉
-G90 (use absolute coordinates)
-M11 S1
-M22 S1
-M33 S1
-M44 S1
-G4 P1
-
-重复次数之间的代码
-//仍未修改OK
-页脚
-G0 X0 Y0 Z0 (move back to origin)
-M11 S0
-M22 S0
-M33 S0
-M44 S0
-
-Hex . V1:M33 M44 OK!
-Hex . V2:M11 M22 OK!
+其它说明
+- `README` 中的硬件映射参考：`cpu_map/cpu_map_atmega328p.h`（引脚位），以及 `limits.c`、`stepper.c` 中的使用位置。请在更改之前备份你的配置文件与 wiring。
+- 版本提示：
+  - Hex . V1: M33/M44 已测试通过
+  - Hex . V2: M11/M22 已测试通过
